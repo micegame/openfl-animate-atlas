@@ -220,6 +220,9 @@ import openfl.utils.Function;
         for (i in 0...numLayers)
             updateLayer(i);
 
+        if(frameScripts.exists(currentFrame)) {
+            frameScripts.get(currentFrame)();
+        }
         composedFrame = currentFrame;
     }
 
@@ -340,11 +343,6 @@ import openfl.utils.Function;
                 oldSymbol = cast tileContainer.removeTileAt(numElements);
             }
             atlas.putSymbol(cast oldSymbol);
-        }
-
-        if(frameScripts.exists(currentFrame))
-        {
-            frameScripts.get(currentFrame)();
         }
     }
 
