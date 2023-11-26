@@ -58,8 +58,13 @@ class AnimateAtlasParser {
         lime.graphics.Image.loadFromBytes(compressedContent.spritemapBytes).onComplete(function(image) {
             try
             {
-                var animationAtlas = parseAssetSync(BitmapData.fromImage(image), compressedContent.spritemapJson, compressedContent.animationJson, typeInstance);
-                promise.complete(animationAtlas);
+                new Future<AnimateAtlasSheet>(function(){
+                    return parseAssetSync(BitmapData.fromImage(image), compressedContent.spritemapJson, compressedContent.animationJson, typeInstance);
+                }, true).onComplete(function(animationAtlas) {
+                    promise.complete(animationAtlas);
+                }).onError(function(e) {
+                    promise.error(e);
+                });
             }
             catch(e:Exception)
             {
@@ -84,6 +89,10 @@ class AnimateAtlasParser {
         var animationAtlasData:openfl.extensions.animate.struct.ATLAS = Json.parse(spritemapJson);
         var rawAnimationData:Dynamic = Json.parse(animationJson);
 
-        return Type.createInstance(typeInstance, [spritemap, animationAtlasData, rawAnimationData]);
+        var animateAtlasSheet = cast(Type.createInstance(typeInstance, []), AnimateAtlasSheet);
+
+        animateAtlasSheet.process(spritemap, animationAtlasData, rawAnimationData);
+
+        return animateAtlasSheet;
     }
 }

@@ -84,14 +84,19 @@ class AnimateAtlasAssetManager {
     }
 
     public static function loadCompressedAssetSync(path:String, typeInstance:Class<AnimateAtlasSheet>):AnimateAtlasSheet {
+        #if flash
+        return AnimateAtlasParser.parseCompressedAssetSync(cast Assets.getBytes(path), typeInstance);
+        #else
         return AnimateAtlasParser.parseCompressedAssetSync(Assets.getBytes(path), typeInstance);
+        #end
+
     }
 
     public static function loadCompressedAsset(path:String, typeInstance:Class<AnimateAtlasSheet>):Future<AnimateAtlasSheet> {
         var promise = new Promise<AnimateAtlasSheet>();
 
-        Assets.loadBytes(path).onComplete (function (bytes:Bytes) {
-            AnimateAtlasParser.parseCompressedAsset(bytes, typeInstance).onComplete(function (atlas:AnimateAtlasSheet) {
+        Assets.loadBytes(path).onComplete (function (byteArray:ByteArray) {
+            AnimateAtlasParser.parseCompressedAsset(#if flash cast #end byteArray, typeInstance).onComplete(function (atlas:AnimateAtlasSheet) {
                 promise.complete(atlas);
             }).onError(function (msg:Dynamic) {
                 promise.error(msg);
@@ -113,7 +118,12 @@ class AnimateAtlasAssetManager {
         var urlLoader:URLLoader = new URLLoader();
         urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
         urlLoader.addEventListener(Event.COMPLETE, function (e:Event) {
-            var bytes:Bytes = urlLoader.data;
+            var byteArray:ByteArray = urlLoader.data;
+            #if flash
+            var bytes:Bytes = Bytes.ofData(byteArray);
+            #else
+            var bytes:Bytes = cast byteArray;
+            #end
             AnimateAtlasParser.parseCompressedAsset(bytes, typeInstance).onComplete(function (atlas) {
                 promise.complete(atlas);
             }).onError(function (msg:Dynamic) {
